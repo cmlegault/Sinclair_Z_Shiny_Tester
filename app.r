@@ -173,6 +173,8 @@ server <- function(input, output) {
   })
 
   dat <- reactive({
+    set.seed(input$rngSeed)
+    dropvals <- rnorm(nyears * nages)  # randM
     ZAA_use <- ZAA()
     sigmaR <- 0.6
     NAA <- matrix(NA,  nrow = nyears, ncol = nages)

@@ -98,11 +98,17 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                             value = 14),
                
                sliderInput("sigmaM",
-                           label = "sigmaM",
-                           min = 0,
-                           max = 1,
-                           step = 0.05,
-                           value = 0.1)
+                            label = "sigmaM",
+                            min = 0,
+                            max = 1,
+                            step = 0.05,
+                            value = 0.1),
+               sliderInput("sigmaF",
+                            label = "sigmaF",
+                            min = 0,
+                            max = 1,
+                            step = 0.05,
+                            value = 0.2)
              ),
 
              mainPanel(
@@ -167,14 +173,16 @@ server <- function(input, output) {
   ZAA <- reactive({
     set.seed(input$rngSeed)
     randM <- rnorm(nyears * nages, mean = log(0.2), sd = input$sigmaM)
+    randF <- rnorm(nyears * nages, mean = log(0.4), sd = input$sigmaF)
     MAA <- matrix(exp(randM), nrow = nyears, ncol = nages)
-    FAA <- matrix(0.4, nrow = nyears, ncol = nages)
+    FAA <- matrix(exp(randF), nrow = nyears, ncol = nages)
     MAA + FAA
   })
 
   dat <- reactive({
     set.seed(input$rngSeed)
     dropvals <- rnorm(nyears * nages)  # randM
+    dropvals <- rnorm(nyears * nages)  # randF
     ZAA_use <- ZAA()
     sigmaR <- 0.6
     NAA <- matrix(NA,  nrow = nyears, ncol = nages)

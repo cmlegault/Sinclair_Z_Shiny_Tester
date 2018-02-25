@@ -90,6 +90,13 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
   tabPanel("Data Creator",
            sidebarLayout(
              sidebarPanel(
+               sliderInput("rngSeed",
+                            label = "RNG seed value",
+                            min = 1,
+                            max = 1000,
+                            step = 1,
+                            value = 14),
+               
                sliderInput("sigmaM",
                            label = "sigmaM",
                            min = 0,
@@ -158,6 +165,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
 server <- function(input, output) {
   
   ZAA <- reactive({
+    set.seed(input$rngSeed)
     randM <- rnorm(nyears * nages, mean = log(0.2), sd = input$sigmaM)
     MAA <- matrix(exp(randM), nrow = nyears, ncol = nages)
     FAA <- matrix(0.4, nrow = nyears, ncol = nages)

@@ -15,6 +15,10 @@ library(tidyverse)
 library(reshape)
 library(Hmisc)
 
+# dimensions 
+nyears <- 40
+nages <- 30
+
 #-------------------------------------------------------------------------------------
 # function calc_Sinclair_Z
 # estimates catch curve Z using moving window with cohort-specific coefficients
@@ -153,37 +157,24 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-  
-  dat <- reactive({
-    nyears <- 40
-    nages <- 30
-    
+  ZAA <- reactive({
     randM <- rnorm(nyears * nages, mean = log(0.2), sd = input$sigmaM)
-    NAA <- matrix(NA,  nrow = nyears, ncol = nages)
     MAA <- matrix(exp(randM), nrow = nyears, ncol = nages)
     FAA <- matrix(0.4, nrow = nyears, ncol = nages)
-    ZAA <- MAA + FAA
-    ZAAdf <- data.frame(YEAR = integer(),
-                        AGE  = integer(),
-                        ZAA  = double())
-    for (i in 1:nyears){
-      for (j in 1:nages){
-        thisZAA <- data.frame(YEAR = i,
-                              AGE  = j,
-                              ZAA  = ZAA[i,j])
-        ZAAdf <- rbind(ZAAdf, thisZAA)
-      }
-    }
-    ZAAdf <- filter(ZAAdf, AGE %in% seq(input$ageInput[1], input$ageInput[2]))
-    
+    MAA + FAA
+  })
+
+  dat <- reactive({
+    ZAA_use <- ZAA()
     sigmaR <- 0.6
+    NAA <- matrix(NA,  nrow = nyears, ncol = nages)
     NAA[,1] <- exp(rnorm(nyears, mean = log(10000), sd = sigmaR))
     for (j in 2:nages){
-      NAA[1,j] <- NAA[1,(j-1)] * exp(-ZAA[1,(j-1)])
+      NAA[1,j] <- NAA[1,(j-1)] * exp(-ZAA_use[1,(j-1)])
     }
     for (i in 2:nyears){
       for(j in 2:nages){
-        NAA[i,j] <- NAA[(i-1),(j-1)] * exp(-ZAA[(i-1),(j-1)])
+        NAA[i,j] <- NAA[(i-1),(j-1)] * exp(-ZAA_use[(i-1),(j-1)])
       }
     }
     surveySelect <- c(0.01,0.1,0.4,0.5,0.6,0.9,rep(1.0,(nages-6)))
@@ -207,12 +198,22 @@ server <- function(input, output) {
   })
   
   output$creatorPlot <- renderPlot({
-    # this doesn't work, scope of ZAAdf incorrect - how fix???
-    # ggplot(ZAAdf, aes(x=YEAR, y=ZAA, color=AGE)) +
-    #   geom_point() +
-    #   theme_bw()
-    ggplot(dat(), aes(x=YEAR, y=AGE, size=NO_AT_AGE)) +
-      geom_point()
+    ZAA_use <- ZAA()
+    ZAAdf <- data.frame(YEAR = integer(),
+                        AGE  = integer(),
+                        Z    = double())
+    for (i in 1:nyears){
+      for (j in 1:nages){
+        thisZAA <- data.frame(YEAR = i,
+                              AGE  = j,
+                              Z    = ZAA_use[i,j])
+        ZAAdf <- rbind(ZAAdf, thisZAA)
+      }
+    }
+    ZAAdf <- filter(ZAAdf, AGE %in% seq(input$ageInput[1], input$ageInput[2]))
+    ggplot(ZAAdf, aes(x=YEAR, y=Z, color=AGE)) +
+      geom_point() +
+      theme_bw()
   })
   
   output$dataPlot <- renderPlot({

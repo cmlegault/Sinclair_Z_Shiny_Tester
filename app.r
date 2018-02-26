@@ -103,12 +103,18 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                             max = 1,
                             step = 0.05,
                             value = 0.1),
+               
                sliderInput("sigmaF",
                             label = "sigmaF",
                             min = 0,
                             max = 1,
                             step = 0.05,
-                            value = 0.2)
+                            value = 0.2),
+               
+               selectInput("surveyESS",
+                           label = "survey ESS",
+                           choices = c(50, 100, 1000, 10000),
+                           selected = 1000)
              ),
 
              mainPanel(
@@ -197,16 +203,28 @@ server <- function(input, output) {
     }
     surveySelect <- c(0.01,0.1,0.4,0.5,0.6,0.9,rep(1.0,(nages-6)))
     surveyq <- 0.1
+    surveyCAA <- matrix(NA, nrow = nyears, ncol = nages)
+    for (i in 1:nyears){
+      surveyCAA[i,] <- NAA[i,] * surveySelect * surveyq
+    }
+
+    # apply observation error to survey catch at age using multinomial distribution and input ESS
+    surveyObs <- matrix(NA, nrow = nyears, ncol = nages)
+    surveyProp <- rep(NA, nages)
+    for (i in 1:nyears){
+      surveyProp <- surveyCAA[i,] / sum(surveyCAA[i,]) 
+      surveyObs[i,] <- rmultinom(1, input$surveyESS, surveyProp)
+    }
+    
+    # create data frame for survey data
     surveyDat <- data.frame(YEAR      = integer(),
                             AGE       = integer(),
                             NO_AT_AGE = double() )
-    
     for (i in 1:nyears){
       for (j in 1:nages){
-        surveyCAA <- NAA[i,j] * surveySelect[j] * surveyq
         thisDat <- data.frame(YEAR = i,
                               AGE  = j,
-                              NO_AT_AGE = surveyCAA)
+                              NO_AT_AGE = surveyObs[i,j])
         surveyDat <- rbind(surveyDat,thisDat)
       }
     }

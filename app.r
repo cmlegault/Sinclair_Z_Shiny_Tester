@@ -18,6 +18,7 @@ library(Hmisc)
 # dimensions 
 nyears <- 40
 nages <- 30
+selectivityOption <- c("All Ages Fully Selected", "Asymptotic", "Domed")
 
 #-------------------------------------------------------------------------------------
 # function calc_Sinclair_Z
@@ -82,113 +83,115 @@ give.n <- function(x){
 #-------------------------------------------------------------------------------------
 # Define UI for application that draws a histogram
 ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
-  
-  # Application title
-#  titlePanel("Sinclair Z Shiny Tester"),
-  
-  # Sidebar  
-  tabPanel("Data Creator",
-           sidebarLayout(
-             sidebarPanel(
-               sliderInput("rngSeed",
-                            label = "RNG seed value",
-                            min = 1,
-                            max = 1000,
-                            step = 1,
-                            value = 14),
-               
-               sliderInput("sigmaM",
-                            label = "sigmaM",
-                            min = 0,
-                            max = 1,
-                            step = 0.05,
-                            value = 0.1),
-               
-               sliderInput("sigmaF",
-                            label = "sigmaF",
-                            min = 0,
-                            max = 1,
-                            step = 0.05,
-                            value = 0.2),
-               
-               selectInput("surveyESS",
-                           label = "survey ESS",
-                           choices = c(50, 100, 1000, 10000),
-                           selected = 1000)
-             ),
-
-             mainPanel(
-               plotOutput("creatorPlot")
-             )
-           )
-  ),
-
-  tabPanel("Estimate Z",
-           sidebarLayout(
-             sidebarPanel(
-               sliderInput("ageInput", 
-                           label = "Age Range", 
-                           min = 1, 
-                           max = 30, 
-                           value = c(4,10)),
-               
-               sliderInput("nwSelection",
-                           label = "Number of Years in Moving Window",
-                           min = 3,
-                           max = 6,
-                           step = 1,
-                           value = 4),
-               
-               actionButton("firstfit",
-                            label = "Display First Fit"),
-               
-               actionButton("previousfit",
-                            label = "Display Previous Fit"),
-               
-               actionButton("nextfit",
-                            label = "Display Next Fit"),
-               
-               actionButton("lastfit",
-                            label = "Display Last Fit"),
-               
-               br(),
-               br(),
-               h4("Reference"),
-               p("Sinclair, A.F. 2001. Natural mortality of cod (Gadus morhua) in the Southern Gulf of St Lawrence. ICES Journal of Marine Science. 58: 1-10. https://doi.org/10.1006/jmsc.1999.0490")
-               
-             ),
-             
-             # Main panel (plots)
-             mainPanel(
-               tabsetPanel(
-                 tabPanel("Data", plotOutput("dataPlot")),
-                 tabPanel("Z estimates", plotOutput("ZPlot")),
-                 tabPanel("Diagnostic", plotOutput("diagnosticPlot")),
-                 tabPanel("Fits", plotOutput("fitsPlot"))
-               )
-             )
-           )
-  )
+                 
+                 # Application title
+                 #  titlePanel("Sinclair Z Shiny Tester"),
+                 
+                 # Sidebar  
+                 tabPanel("Data Creator",
+                          sidebarLayout(
+                            sidebarPanel(
+                              sliderInput("rngSeed",
+                                          label = "RNG seed value",
+                                          min = 1,
+                                          max = 1000,
+                                          step = 1,
+                                          value = 14),
+                              
+                              selectInput("surveyESS",
+                                          label = "survey ESS",
+                                          choices = c(50, 100, 1000, 10000),
+                                          selected = 1000),
+                              
+                              selectInput("FisherySelectivity",
+                                          label = "Fishery Selectivity",
+                                          choices = selectivityOption),
+                              
+                              selectInput("SurveySelectivity",
+                                          label= "Survey Selectivity",
+                                          choices = selectivityOption)
+                            ),
+                            
+                            mainPanel(
+                              plotOutput("creatorPlot")
+                            )
+                          )
+                 ),
+                 
+                 tabPanel("Estimate Z",
+                          sidebarLayout(
+                            sidebarPanel(
+                              sliderInput("ageInput", 
+                                          label = "Age Range", 
+                                          min = 1, 
+                                          max = 30, 
+                                          value = c(4,10)),
+                              
+                              sliderInput("nwSelection",
+                                          label = "Number of Years in Moving Window",
+                                          min = 3,
+                                          max = 6,
+                                          step = 1,
+                                          value = 4),
+                              
+                              actionButton("firstfit",
+                                           label = "Display First Fit"),
+                              
+                              actionButton("previousfit",
+                                           label = "Display Previous Fit"),
+                              
+                              actionButton("nextfit",
+                                           label = "Display Next Fit"),
+                              
+                              actionButton("lastfit",
+                                           label = "Display Last Fit"),
+                              
+                              br(),
+                              br(),
+                              h4("Reference"),
+                              p("Sinclair, A.F. 2001. Natural mortality of cod (Gadus morhua) in the Southern Gulf of St Lawrence. ICES Journal of Marine Science. 58: 1-10. https://doi.org/10.1006/jmsc.1999.0490")
+                              
+                            ),
+                            
+                            # Main panel (plots)
+                            mainPanel(
+                              tabsetPanel(
+                                tabPanel("Data", plotOutput("dataPlot")),
+                                tabPanel("Z estimates", plotOutput("ZPlot")),
+                                tabPanel("Diagnostic", plotOutput("diagnosticPlot")),
+                                tabPanel("Fits", plotOutput("fitsPlot"))
+                              )
+                            )
+                          )
+                 )
 )
 
-  
+
 #-------------------------------------------------------------------------------------
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
   ZAA <- reactive({
-    set.seed(input$rngSeed)
-    randM <- rnorm(nyears * nages, mean = log(0.2), sd = input$sigmaM)
-    randF <- rnorm(nyears * nages, mean = log(0.4), sd = input$sigmaF)
-    MAA <- matrix(exp(randM), nrow = nyears, ncol = nages)
-    FAA <- matrix(exp(randF), nrow = nyears, ncol = nages)
+    MAA <- matrix(0.2, nrow = nyears, ncol = nages)
+    if (input$FisherySelectivity == selectivityOption[1]){
+      # All Ages Fully Selected
+      fleetSel <- rep(1.0, nages)
+    } else if (input$FisherySelectivity == selectivityOption[2]){
+      # Asymptotic
+      fleetSel <- c(0.01, 0.1, 0.4, 0.5, 0.6, 0.9, rep(1.0, (nages - 6)))
+    } else if (input$FisherySelectivity == selectivityOption[3]){
+      # Domed
+      fleetSel <- c(0.01, 0.1, 0.4, 0.5, 0.6, 0.9, rep(1.0, (nages - 11)), c(0.9, 0.6, 0.5, 0.4, 0.1))
+    }
+    Fmult <- rep(0.4, nyears)
+    FAA <- outer(Fmult, fleetSel)
     MAA + FAA
   })
-
+  
   dat <- reactive({
     set.seed(input$rngSeed)
-    dropvals <- rnorm(nyears * nages)  # randM
-    dropvals <- rnorm(nyears * nages)  # randF
+    #dropvals <- rnorm(nyears * nages)  # randM
+    #dropvals <- rnorm(nyears * nages)  # randF
     ZAA_use <- ZAA()
     sigmaR <- 0.6
     NAA <- matrix(NA,  nrow = nyears, ncol = nages)
@@ -201,13 +204,22 @@ server <- function(input, output) {
         NAA[i,j] <- NAA[(i-1),(j-1)] * exp(-ZAA_use[(i-1),(j-1)])
       }
     }
-    surveySelect <- c(0.01,0.1,0.4,0.5,0.6,0.9,rep(1.0,(nages-6)))
+    if (input$SurveySelectivity == selectivityOption[1]){
+      # All Ages Fully Selected
+      surveySelect <- rep(1.0, nages)
+    } else if (input$SurveySelectivity == selectivityOption[2]){
+      # Asymptotic
+      surveySelect <- c(0.01, 0.1, 0.4, 0.5, 0.6, 0.9, rep(1.0, (nages - 6)))
+    } else if (input$SurveySelectivity == selectivityOption[3]){
+      # Domed
+      surveySelect <- c(0.01, 0.1, 0.4, 0.5, 0.6, 0.9, rep(1.0, (nages - 11)), c(0.9, 0.6, 0.5, 0.4, 0.1))
+    }
     surveyq <- 0.1
     surveyCAA <- matrix(NA, nrow = nyears, ncol = nages)
     for (i in 1:nyears){
       surveyCAA[i,] <- NAA[i,] * surveySelect * surveyq
     }
-
+    
     # apply observation error to survey catch at age using multinomial distribution and input ESS
     surveyObs <- matrix(NA, nrow = nyears, ncol = nages)
     surveyProp <- rep(NA, nages)
@@ -228,7 +240,7 @@ server <- function(input, output) {
         surveyDat <- rbind(surveyDat,thisDat)
       }
     }
-
+    
     filter(surveyDat, 
            AGE %in% seq(input$ageInput[1], input$ageInput[2])) 
   })

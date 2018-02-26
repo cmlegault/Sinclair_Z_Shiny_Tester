@@ -272,6 +272,12 @@ server <- function(input, output) {
   })
   
   output$ZPlot <- renderPlot({
+    # add Ztrue
+    ZAA_use <- ZAA()
+    Ztrue <- apply(ZAA_use[,input$ageInput[1]: input$ageInput[2]], 1, mean)
+    Ztruedf <- data.frame(Year = 1:nyears,
+                          Z = Ztrue)
+    # end add Ztrue section
     mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
       spread(key=AGE, value=NO_AT_AGE, fill=0)
     years <- mat$YEAR
@@ -285,6 +291,7 @@ server <- function(input, output) {
     ggplot(est.Z, aes(x=Year, y=Z)) +
       geom_errorbar(aes(ymin=low, ymax=high), na.rm = TRUE) +
       geom_point(na.rm = TRUE) +
+      geom_line(data=Ztruedf, aes(x=Year, y=Z), color="tomato") + # add Ztrue line
       geom_hline(yintercept = 0) +
       theme_bw()
   })

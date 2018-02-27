@@ -18,7 +18,6 @@ library(Hmisc)
 # dimensions 
 nyears <- 40
 nages <- 30
-selectivityOption <- c("All Ages Fully Selected", "Asymptotic", "Domed")
 
 #-------------------------------------------------------------------------------------
 # function calc_Sinclair_Z
@@ -129,12 +128,34 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 0.1,
                                           max = 5,
                                           step = 0.1,
-                                          value = 1)
+                                          value = 1),
+                              
+                              sliderInput("StartingF",
+                                          label = "F in first year",
+                                          min = 0,
+                                          max = 1,
+                                          step = 0.1,
+                                          value = 0.2),
+                              
+                              sliderInput("EndingF",
+                                          label = "F in last year",
+                                          min = 0,
+                                          max = 1,
+                                          step = 0.1,
+                                          value = 0.4),
+                              
+                              radioButtons("changeF",
+                                           label = "How F changes",
+                                           choices = c("step","linear"),
+                                           selected = "step",
+                                           inline = TRUE)
                             ),
                             
                             mainPanel(
-                              plotOutput("creatorPlot"),
-                              plotOutput("selectivityPlot")
+                              tabsetPanel(
+                                tabPanel("Selectivities", plotOutput("selectivityPlot")),
+                                tabPanel("Z Values", plotOutput("ZvaluesPlot"))
+                              )
                             )
                           )
                  ),
@@ -239,7 +260,15 @@ server <- function(input, output) {
   })
   
   ZAA <- reactive({
-    Fmult <- rep(0.4, nyears)
+    Fmult <- rep(input$StartingF, nyears)
+    if (input$EndingF != Fmult[1]){
+      if (input$changeF == "step"){
+        Fmult[ceiling(nyears / 2):nyears] <- input$EndingF
+      }
+      if (input$changeF == "linear"){
+        Fmult <- seq(input$StartingF, input$EndingF, length.out = nyears)
+      }
+    } 
     seldf <- Selectivitydf()
     fleetSel <- filter(seldf, Source == "Fishery") 
     FAA <- matrix(NA, nrow = nyears, ncol = nages)
@@ -304,7 +333,7 @@ server <- function(input, output) {
            AGE %in% seq(input$ageInput[1], input$ageInput[2])) 
   })
   
-  output$creatorPlot <- renderPlot({
+  output$ZvaluesPlot <- renderPlot({
     ZAA_use <- ZAA()
     ZAAdf <- data.frame(YEAR = integer(),
                         AGE  = integer(),
@@ -318,8 +347,12 @@ server <- function(input, output) {
       }
     }
     ZAAdf <- filter(ZAAdf, AGE %in% seq(input$ageInput[1], input$ageInput[2]))
+    Ztrue <- apply(ZAA_use[,input$ageInput[1]: input$ageInput[2]], 1, mean)
+    Ztruedf <- data.frame(Year = 1:nyears,
+                          Z = Ztrue)
     ggplot(ZAAdf, aes(x=YEAR, y=Z, color=AGE)) +
       geom_point() +
+      geom_line(data=Ztruedf, aes(x=Year, y=Z), color="tomato") + 
       theme_bw()
   })
   

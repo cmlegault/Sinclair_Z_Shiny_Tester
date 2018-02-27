@@ -333,7 +333,7 @@ server <- function(input, output) {
   })
   
   output$dataPlot <- renderPlot({
-    ggplot(dat(), aes(x=AGE, y=YEAR, size=NO_AT_AGE)) +
+    ggplot(filter(dat(), NO_AT_AGE > 0), aes(x=AGE, y=YEAR, size=NO_AT_AGE)) +
       geom_point() +
       scale_y_reverse() +
       theme_bw()

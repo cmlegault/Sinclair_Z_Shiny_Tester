@@ -96,7 +96,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 1,
                                           max = 1000,
                                           step = 1,
-                                          value = 14),
+                                          value = 100),
                               
                               bsTooltip("rngSeed",
                                         "Changes recruitment and survey observations (multinomial)",
@@ -116,7 +116,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 1,
                                           max = nages,
                                           step = 1,
-                                          value = c(5, nages)),
+                                          value = c(9, 25)),
                               
                               bsTooltip("FisheryFullSelectivity",
                                         "Use sliders to determine ages that are and are not fully selected",
@@ -127,7 +127,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 0.1,
                                           max = 5,
                                           step = 0.1,
-                                          value = 2),
+                                          value = 2.0),
                               
                               bsTooltip("FisherySelectivityWidth",
                                         "Determines how steep logistic curve is",
@@ -138,7 +138,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 1,
                                           max = nages,
                                           step = 1,
-                                          value = c(2, nages)),
+                                          value = c(1, 15)),
                               
                               bsTooltip("SurveyFullSelectivity",
                                         "Use sliders to determine ages that are and are not fully selected",
@@ -149,7 +149,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 0.1,
                                           max = 5,
                                           step = 0.1,
-                                          value = 1),
+                                          value = 4.0),
                               
                               bsTooltip("SurveySelectivityWidth",
                                         "Determines how steep logistic curve is",
@@ -171,7 +171,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 0,
                                           max = 1,
                                           step = 0.1,
-                                          value = 0.4),
+                                          value = 0.6),
                               
                               bsTooltip("EndingF",
                                         "Change F over time ending at this value",
@@ -190,7 +190,13 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                             
                             mainPanel(
                               plotOutput("selectivityPlot"),
-                              plotOutput("ZvaluesPlot")
+                              plotOutput("ZvaluesPlot"),
+                              bsTooltip("selectivityPlot",
+                                        "Shows selectivity at age for the fishery and survey, note the oldest age is not a plus group",
+                                        "left"),
+                              bsTooltip("ZvaluesPlot",
+                                        "Shows the true Z values at age over time as blue-black dots for the age range used in the Z estimation only, the red line is the average value over this age range (also shown in the Z estimates plot in the Estimate Z tab). Note the y-axis adjusts to the range of values and that M is always 0.2",
+                                        "left")
                             )
                           )
                  ),

@@ -9,6 +9,7 @@
 #
 
 library(shiny)
+library(shinyBS)
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
@@ -97,10 +98,18 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 1,
                                           value = 14),
                               
+                              bsTooltip("rngSeed",
+                                        "Changes recruitment and survey observations (multinomial)",
+                                        "right"),
+                              
                               selectInput("surveyESS",
                                           label = "survey ESS",
                                           choices = c(50, 100, 1000, 10000),
                                           selected = 1000),
+                              
+                              bsTooltip("surveyESS",
+                                        "Creates observation error in surveys at age",
+                                        "right"),
                               
                               sliderInput("FisheryFullSelectivity",
                                           label = "Fishery Full Selectivity",
@@ -108,6 +117,10 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           max = nages,
                                           step = 1,
                                           value = c(5, nages)),
+                              
+                              bsTooltip("FisheryFullSelectivity",
+                                        "Use sliders to determine ages that are and are not fully selected",
+                                        "right"),
 
                               sliderInput("FisherySelectivityWidth",
                                           label = "Fish Sel Inner-Quartile Width",
@@ -115,6 +128,10 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           max = 5,
                                           step = 0.1,
                                           value = 2),
+                              
+                              bsTooltip("FisherySelectivityWidth",
+                                        "Determines how steep logistic curve is",
+                                        "right"),
 
                               sliderInput("SurveyFullSelectivity",
                                           label = "Survey Full Selectivity",
@@ -123,12 +140,20 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 1,
                                           value = c(2, nages)),
                               
+                              bsTooltip("SurveyFullSelectivity",
+                                        "Use sliders to determine ages that are and are not fully selected",
+                                        "right"),
+                              
                               sliderInput("SurveySelectivityWidth",
                                           label = "Survey Sel Inner-Quartile Width",
                                           min = 0.1,
                                           max = 5,
                                           step = 0.1,
                                           value = 1),
+                              
+                              bsTooltip("SurveySelectivityWidth",
+                                        "Determines how steep logistic curve is",
+                                        "right"),
                               
                               sliderInput("StartingF",
                                           label = "F in first year",
@@ -137,6 +162,10 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 0.1,
                                           value = 0.2),
                               
+                              bsTooltip("StartingF",
+                                        "Change F over time starting at this value",
+                                        "right"),
+                              
                               sliderInput("EndingF",
                                           label = "F in last year",
                                           min = 0,
@@ -144,18 +173,24 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 0.1,
                                           value = 0.4),
                               
+                              bsTooltip("EndingF",
+                                        "Change F over time ending at this value",
+                                        "right"),
+                              
                               radioButtons("changeF",
                                            label = "How F changes",
                                            choices = c("step","linear"),
                                            selected = "step",
-                                           inline = TRUE)
+                                           inline = TRUE),
+                              
+                              bsTooltip("changeF",
+                                        "Does F change all at once halfway through time period or slowly over time",
+                                        "right")
                             ),
                             
                             mainPanel(
-                              tabsetPanel(
-                                tabPanel("Selectivities", plotOutput("selectivityPlot")),
-                                tabPanel("Z Values", plotOutput("ZvaluesPlot"))
-                              )
+                              plotOutput("selectivityPlot"),
+                              plotOutput("ZvaluesPlot")
                             )
                           )
                  ),

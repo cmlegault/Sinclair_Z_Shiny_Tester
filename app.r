@@ -108,7 +108,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           min = 1,
                                           max = nages,
                                           step = 1,
-                                          value = c(1, nages)),
+                                          value = c(5, nages)),
 
                               sliderInput("FisherySelectivityWidth",
                                           label = "Fish Sel Inner-Quartile Width",
@@ -117,9 +117,19 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 0.1,
                                           value = 2),
 
-                              selectInput("SurveySelectivity",
-                                          label= "Survey Selectivity",
-                                          choices = selectivityOption)
+                              sliderInput("SurveyFullSelectivity",
+                                          label = "Survey Full Selectivity",
+                                          min = 1,
+                                          max = nages,
+                                          step = 1,
+                                          value = c(2, nages)),
+                              
+                              sliderInput("SurveySelectivityWidth",
+                                          label = "Survey Sel Inner-Quartile Width",
+                                          min = 0.1,
+                                          max = 5,
+                                          step = 0.1,
+                                          value = 1)
                             ),
                             
                             mainPanel(
@@ -181,7 +191,13 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
 #-------------------------------------------------------------------------------------
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
+
+  # selectivity is based on logistic function Sel = 1 / (1 + exp(-slope*(age-A50)))
+  # slope is determined by the  inter-quartile width (distance between 25% and 75% selectivity)
+  # boundary of full selectivity used to solve for Sel = 0.999 and then set equal 1.0 for the slider age
+  # logistic down at older ages uses Sel = 1 - (1 / (1 + exp(-slope*(age-A50))))
+  # when sliders overlap, that age has full selectivity 
+  # (cannot move increasing logistic to right of decreasing logistic)
   Selectivitydf <- reactive({
     fleetSel <- rep(1.0, nages)
     FS1 <- input$FisheryFullSelectivity[1]
@@ -200,14 +216,39 @@ server <- function(input, output) {
         fleetSel[i] <- 1.0 - (1.0 / (1.0 + exp(-selSlope * (i - selA50))))
       }
     }
-    fleetSel
+    surveySel <- rep(1.0, nages)
+    SS1 <- input$SurveyFullSelectivity[1]
+    SS2 <- input$SurveyFullSelectivity[2]
+    if (SS1 > 1){
+      survSlope <- 2.0 * log(3) / input$SurveySelectivityWidth
+      survA50 <- (log((1.0 / 0.999) - 1.0) / survSlope) + SS1
+      for (i in 1:(SS1-1)){
+        surveySel[i] <- 1.0 / (1.0 + exp(-survSlope * (i - survA50)))
+      }
+    }
+    if (SS2 < nages){
+      survSlope <- 2.0 * log(3.0) / input$SurveySelectivityWidth
+      survA50 <- (log((1.0 / 0.001) - 1.0) / survSlope) + SS2
+      for (i in (SS2+1):nages){
+        surveySel[i] <- 1.0 - (1.0 / (1.0 + exp(-survSlope * (i - survA50))))
+      }
+    }
+    data.frame(Age = c(1:nages, 1:nages),
+                        Source = c(rep("Fishery", nages), rep("Survey", nages)),
+                        Selectivity = c(fleetSel, surveySel))
   })
   
   ZAA <- reactive({
-    fleetSelectivity <- Selectivitydf()
-    MAA <- matrix(0.2, nrow = nyears, ncol = nages)
     Fmult <- rep(0.4, nyears)
-    FAA <- outer(Fmult, fleetSelectivity)
+    seldf <- Selectivitydf()
+    fleetSel <- filter(seldf, Source == "Fishery") 
+    FAA <- matrix(NA, nrow = nyears, ncol = nages)
+    for (i in 1:nyears){
+      for (j in 1:nages){
+        FAA[i,j] <- Fmult[i] * fleetSel$Selectivity[j]
+      }
+    }
+    MAA <- matrix(0.2, nrow = nyears, ncol = nages)
     MAA + FAA
   })
   
@@ -227,20 +268,15 @@ server <- function(input, output) {
         NAA[i,j] <- NAA[(i-1),(j-1)] * exp(-ZAA_use[(i-1),(j-1)])
       }
     }
-    if (input$SurveySelectivity == selectivityOption[1]){
-      # All Ages Fully Selected
-      surveySelect <- rep(1.0, nages)
-    } else if (input$SurveySelectivity == selectivityOption[2]){
-      # Asymptotic
-      surveySelect <- c(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, rep(1.0, (nages - 6)))
-    } else if (input$SurveySelectivity == selectivityOption[3]){
-      # Domed
-      surveySelect <- c(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, rep(1.0, (nages - 11)), c(0.9, 0.75, 0.5, 0.25, 0.1))
-    }
+    # calculate survey catch at age
+    seldf <- Selectivitydf()
+    surveySel <- filter(seldf, Source == "Survey") 
     surveyq <- 0.1
     surveyCAA <- matrix(NA, nrow = nyears, ncol = nages)
     for (i in 1:nyears){
-      surveyCAA[i,] <- NAA[i,] * surveySelect * surveyq
+      for (j in 1:nages){
+        surveyCAA[i,j] <- NAA[i,j] * surveySel$Selectivity[j] * surveyq
+      }
     }
     
     # apply observation error to survey catch at age using multinomial distribution and input ESS
@@ -288,21 +324,7 @@ server <- function(input, output) {
   })
   
   output$selectivityPlot <- renderPlot({
-    fleetSelectivity <- Selectivitydf()
-
-    if (input$SurveySelectivity == selectivityOption[1]){
-      # All Ages Fully Selected
-      surveySelect <- rep(1.0, nages)
-    } else if (input$SurveySelectivity == selectivityOption[2]){
-      # Asymptotic
-      surveySelect <- c(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, rep(1.0, (nages - 6)))
-    } else if (input$SurveySelectivity == selectivityOption[3]){
-      # Domed
-      surveySelect <- c(0.01, 0.1, 0.25, 0.5, 0.75, 0.9, rep(1.0, (nages - 11)), c(0.9, 0.75, 0.5, 0.25, 0.1))
-    }
-    seldf <- data.frame(Age = c(1:nages, 1:nages),
-                        Source = c(rep("Fishery", nages), rep("Survey", nages)),
-                        Selectivity = c(fleetSelectivity, surveySelect))
+    seldf <- Selectivitydf()
     ggplot(seldf, aes(x=Age, y=Selectivity, color=Source)) +
       geom_point() +
       geom_line() +

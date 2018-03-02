@@ -108,7 +108,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           selected = 1000),
                               
                               bsTooltip("surveyESS",
-                                        "Creates observation error in surveys at age",
+                                        "ESS = Effective Sample Size. Creates observation error in surveys at age. Cannot see any response to changes here, need to look in the Estimate Z tab Data plot or Fits plots to see the effect of changing this value",
                                         "right"),
                               
                               sliderInput("FisheryFullSelectivity",
@@ -210,6 +210,10 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           max = 30, 
                                           value = c(4,10)),
                               
+                              bsTooltip("ageInput",
+                                        "Move these sliders to determine which ages are used in the Sinclair Z estimation",
+                                        "right"),
+                              
                               sliderInput("nwSelection",
                                           label = "Number of Years in Moving Window",
                                           min = 3,
@@ -217,8 +221,16 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           step = 1,
                                           value = 4),
                               
+                              bsTooltip("nwSelection",
+                                        "Width of moving window used in Sinclair Z estimation. Default value used in publication is 4",
+                                        "right"),
+                              
                               actionButton("firstfit",
                                            label = "Display First Fit"),
+                              
+                              bsTooltip("firstfit",
+                                        "These buttons cycle through the plots in the Fit tab",
+                                        "right"),
                               
                               actionButton("previousfit",
                                            label = "Display Previous Fit"),
@@ -242,7 +254,21 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                 tabPanel("Data", plotOutput("dataPlot")),
                                 tabPanel("Z estimates", plotOutput("ZPlot")),
                                 tabPanel("Diagnostic", plotOutput("diagnosticPlot")),
-                                tabPanel("Fits", plotOutput("fitsPlot"))
+                                tabPanel("Fits", plotOutput("fitsPlot")),
+                                bsTooltip("dataPlot",
+                                          "Survey catch at age and year for the ages selected",
+                                          "left"),
+                                bsTooltip("ZPlot",
+                                          "Estimates of total mortality (points) with 90% confidence intervals (vertical lines) and true value from Data Creator (red line)",
+                                          "left"),
+                                bsTooltip("diagnosticPlot",
+                                          "Box and whisker plot of residuals from all regressions (shown in Fits plots) for each age. Numbers denote the number of residuals at age (can differ due to zero catch at age for some cohorts)",
+                                          "left"),
+                                bsTooltip("fitsPlot",
+                                          "One moving window regression with common total mortality estimate (negative of the slope) and different intercepts for each cohort. Colors and symbols denote different cohorts). The y-axis for these plots is the natural logarithm of the survey catch at age for a year in the moving window. Use the buttons to cycle through different year windows",
+                                          "left")
+                                
+
                               )
                             )
                           )

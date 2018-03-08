@@ -7,14 +7,19 @@
 #
 #    http://shiny.rstudio.com/
 #
+packages = c("shiny",       # interactive components
+             "shinyBS",     # pop up help boxes
+             "ggplot2",     # nice graphics
+             "dplyr",       # data handling
+             "reshape",     # data handling
+             "Hmisc")       # error bar plotting
 
-library(shiny)
-library(shinyBS)
-library(ggplot2)
-library(dplyr)
-library(tidyverse)
-library(reshape)
-library(Hmisc)
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
 
 # dimensions 
 nyears <- 40

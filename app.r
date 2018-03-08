@@ -491,19 +491,29 @@ server <- function(input, output) {
     }
   })
   
+  nfits <- reactive({
+    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
+      spread(key=AGE, value=NO_AT_AGE, fill=0)
+    years <- mat$YEAR
+    mat <- select(mat, -c(YEAR))
+    rownames(mat) <- years
+    res <- calc_Sinclair_Z(mat, input$nwSelection)
+    length(res$plot.year)
+  })
+
   icount <- reactiveValues(fit = 1)
   observeEvent(input$firstfit, {icount$fit <- 1})
   observeEvent(input$previousfit, {
     icount$fit <- icount$fit - 1
     icount$fit <- max(icount$fit, 1)
-    icount$fit <- min(icount$fit, ny)
+    icount$fit <- min(icount$fit, nfits())
   })
   observeEvent(input$nextfit, {
     icount$fit <- icount$fit + 1
     icount$fit <- max(icount$fit, 1)
-    icount$fit <- min(icount$fit, ny)
+    icount$fit <- min(icount$fit, nfits())
   })
-  observeEvent(input$lastfit, {icount$fit <- ny})
+  observeEvent(input$lastfit, {icount$fit <- nfits()})
   
   output$fitsPlot <- renderPlot({
     mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%

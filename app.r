@@ -11,7 +11,7 @@ packages = c("shiny",       # interactive components
              "shinyBS",     # pop up help boxes
              "ggplot2",     # nice graphics
              "dplyr",       # data handling
-             "reshape",     # data handling
+             "tidyr",       # data handling
              "Hmisc")       # error bar plotting
 
 package.check <- lapply(packages, FUN = function(x) {

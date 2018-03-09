@@ -88,112 +88,138 @@ give.n <- function(x){
 
 #-------------------------------------------------------------------------------------
 # Define UI for application that draws a histogram
-ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
+ui <- navbarPage("Sinclair Z Shiny Tester",  
                  
-                 # Application title
-                 #  titlePanel("Sinclair Z Shiny Tester"),
-                 
-                 # Sidebar  
-                 tabPanel("Data Creator",
-                          sidebarLayout(
-                            sidebarPanel(
-                              sliderInput("rngSeed",
-                                          label = "RNG seed value",
-                                          min = 1,
-                                          max = 1000,
-                                          step = 1,
-                                          value = 100),
-                              
-                              bsTooltip("rngSeed",
-                                        "Changes recruitment and survey observations (multinomial)",
-                                        "right"),
-                              
-                              selectInput("surveyESS",
-                                          label = "survey ESS",
-                                          choices = c(50, 100, 1000, 10000),
-                                          selected = 1000),
-                              
-                              bsTooltip("surveyESS",
-                                        "ESS = Effective Sample Size. Creates observation error in surveys at age. Cannot see any response to changes here, need to look in the Estimate Z tab Data plot or Fits plots to see the effect of changing this value",
-                                        "right"),
-                              
-                              sliderInput("FisheryFullSelectivity",
-                                          label = "Fishery Full Selectivity",
-                                          min = 1,
-                                          max = nages,
-                                          step = 1,
-                                          value = c(9, 25)),
-                              
-                              bsTooltip("FisheryFullSelectivity",
-                                        "Use sliders to determine ages that are and are not fully selected",
-                                        "right"),
-
-                              sliderInput("FisherySelectivityWidth",
-                                          label = "Fish Sel Inner-Quartile Width",
-                                          min = 0.1,
-                                          max = 5,
-                                          step = 0.1,
-                                          value = 2.0),
-                              
-                              bsTooltip("FisherySelectivityWidth",
-                                        "Determines how steep logistic curve is",
-                                        "right"),
-
-                              sliderInput("SurveyFullSelectivity",
-                                          label = "Survey Full Selectivity",
-                                          min = 1,
-                                          max = nages,
-                                          step = 1,
-                                          value = c(1, 15)),
-                              
-                              bsTooltip("SurveyFullSelectivity",
-                                        "Use sliders to determine ages that are and are not fully selected",
-                                        "right"),
-                              
-                              sliderInput("SurveySelectivityWidth",
-                                          label = "Survey Sel Inner-Quartile Width",
-                                          min = 0.1,
-                                          max = 5,
-                                          step = 0.1,
-                                          value = 4.0),
-                              
-                              bsTooltip("SurveySelectivityWidth",
-                                        "Determines how steep logistic curve is",
-                                        "right"),
-                              
-                              sliderInput("StartingF",
-                                          label = "F in first year",
-                                          min = 0,
-                                          max = 1,
-                                          step = 0.1,
-                                          value = 0.2),
-                              
-                              bsTooltip("StartingF",
-                                        "Change F over time starting at this value",
-                                        "right"),
-                              
-                              sliderInput("EndingF",
-                                          label = "F in last year",
-                                          min = 0,
-                                          max = 1,
-                                          step = 0.1,
-                                          value = 0.6),
-                              
-                              bsTooltip("EndingF",
-                                        "Change F over time ending at this value",
-                                        "right"),
-                              
-                              radioButtons("changeF",
-                                           label = "How F changes",
-                                           choices = c("step","linear"),
-                                           selected = "step",
-                                           inline = TRUE),
-                              
-                              bsTooltip("changeF",
-                                        "Does F change all at once halfway through time period or slowly over time",
-                                        "right")
-                            ),
-                            
+   # Sidebar  
+   tabPanel("Data Creator",
+            sidebarLayout(
+               sidebarPanel(
+                 fluidRow(
+                   column(6,
+                          sliderInput("rngSeed",
+                                      label = "RNG seed",
+                                      min = 1,
+                                      max = 1000,
+                                      step = 1,
+                                      value = 100),
+                          
+                          bsTooltip("rngSeed",
+                                    "Changes recruitment and survey observations (multinomial)",
+                                    "right"),
+                          
+                          sliderInput("FisheryFullSelectivity",
+                                      label = "Fishery Full Selectivity",
+                                      min = 1,
+                                      max = nages,
+                                      step = 1,
+                                      value = c(9, 25)),
+                          
+                          bsTooltip("FisheryFullSelectivity",
+                                    "Use sliders to determine ages that are and are not fully selected",
+                                    "right"),
+                          
+                          sliderInput("FisherySelectivityWidth",
+                                      label = "Fishery Sel Width",
+                                      min = 0.1,
+                                      max = 5,
+                                      step = 0.1,
+                                      value = 2.0),
+                          
+                          bsTooltip("FisherySelectivityWidth",
+                                    "Determines how steep logistic curve is",
+                                    "right"),
+                          
+                          sliderInput("StartingF",
+                                      label = "F in first year",
+                                      min = 0,
+                                      max = 1,
+                                      step = 0.1,
+                                      value = 0.2),
+                          
+                          bsTooltip("StartingF",
+                                    "Change F over time starting at this value",
+                                    "right"),
+                          
+                          sliderInput("EndingF",
+                                      label = "F in last year",
+                                      min = 0,
+                                      max = 1,
+                                      step = 0.1,
+                                      value = 0.6),
+                          
+                          bsTooltip("EndingF",
+                                    "Change F over time ending at this value",
+                                    "right"),
+                          
+                          radioButtons("changeF",
+                                       label = "How F changes",
+                                       choices = c("step","linear"),
+                                       selected = "step",
+                                       inline = FALSE),
+                          
+                          bsTooltip("changeF",
+                                    "Does F change all at once halfway through time period or slowly over time",
+                                    "right")
+                          
+                          ),
+                   
+                   column(6,
+                          selectInput("surveyESS",
+                                      label = "survey ESS",
+                                      choices = c(50, 100, 1000, 10000),
+                                      selected = 1000),
+                          
+                          bsTooltip("surveyESS",
+                                    "ESS = Effective Sample Size. Creates observation error in surveys at age. Cannot see any response to changes here, need to look in the Estimate Z tab Data plot or Fits plots to see the effect of changing this value",
+                                    "right"),
+                          
+                          sliderInput("SurveyFullSelectivity",
+                                      label = "Survey Full Selectivity",
+                                      min = 1,
+                                      max = nages,
+                                      step = 1,
+                                      value = c(1, 15)),
+                          
+                          bsTooltip("SurveyFullSelectivity",
+                                    "Use sliders to determine ages that are and are not fully selected",
+                                    "right"),
+                          
+                          sliderInput("SurveySelectivityWidth",
+                                      label = "Survey Sel Width",
+                                      min = 0.1,
+                                      max = 5,
+                                      step = 0.1,
+                                      value = 4.0),
+                          
+                          bsTooltip("SurveySelectivityWidth",
+                                    "Determines how steep logistic curve is",
+                                    "right"),
+                          
+                          sliderInput("sigmaF",
+                                      "sigmaF",
+                                      min = 0.0,
+                                      max = 0.9,
+                                      step = 0.1,
+                                      value = 0.0),
+                          
+                          bsTooltip("sigmaF",
+                                    "Standard deviation of lognormal distribution to add noise to annual F values",
+                                    "right"),
+                          
+                          sliderInput("phiF",
+                                      "Autocorrelation",
+                                      min = -1.0,
+                                      max = 1.0,
+                                      step = 0.1,
+                                      value = 0.0),
+                          
+                          bsTooltip("phiF",
+                                    "Corellation in random deviates for F from one year to the next",
+                                    "right")
+                          )
+                 )
+                   ),
+                   
                             mainPanel(
                               plotOutput("selectivityPlot"),
                               plotOutput("ZvaluesPlot"),
@@ -274,7 +300,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",  #fluidPage(
                                           "One moving window regression with common total mortality estimate (negative of the slope) and different intercepts for each cohort. Colors and symbols denote different cohorts). The y-axis for these plots is the natural logarithm of the survey catch at age for a year in the moving window. Use the buttons to cycle through different year windows",
                                           "left")
                                 
-
+                                
                               )
                             )
                           )
@@ -333,6 +359,14 @@ server <- function(input, output) {
   })
   
   ZAA <- reactive({
+    set.seed(input$rngSeed)
+    Fdev <- rep(NA, nyears)
+    FdevAR1 <- rep(NA, nyears)
+    Fdev <- rnorm(nyears, mean = 0.0, sd = input$sigmaF)
+    FdevAR1[1] <- Fdev[1]
+    for (i in 2:nyears){
+      FdevAR1[i] <- input$phiF * FdevAR1[i-1] + Fdev[i] 
+    }
     Fmult <- rep(input$StartingF, nyears)
     if (input$EndingF != Fmult[1]){
       if (input$changeF == "step"){
@@ -341,13 +375,14 @@ server <- function(input, output) {
       if (input$changeF == "linear"){
         Fmult <- seq(input$StartingF, input$EndingF, length.out = nyears)
       }
-    } 
+    }
+    FmultNoisy <- Fmult * exp(FdevAR1)
     seldf <- Selectivitydf()
     fleetSel <- filter(seldf, Source == "Fishery") 
     FAA <- matrix(NA, nrow = nyears, ncol = nages)
     for (i in 1:nyears){
       for (j in 1:nages){
-        FAA[i,j] <- Fmult[i] * fleetSel$Selectivity[j]
+        FAA[i,j] <- FmultNoisy[i] * fleetSel$Selectivity[j]
       }
     }
     MAA <- matrix(0.2, nrow = nyears, ncol = nages)
@@ -355,9 +390,6 @@ server <- function(input, output) {
   })
   
   dat <- reactive({
-    set.seed(input$rngSeed)
-    #dropvals <- rnorm(nyears * nages)  # randM
-    #dropvals <- rnorm(nyears * nages)  # randF
     ZAA_use <- ZAA()
     sigmaR <- 0.6
     NAA <- matrix(NA,  nrow = nyears, ncol = nages)

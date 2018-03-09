@@ -11,6 +11,7 @@ packages = c("shiny",       # interactive components
              "shinyBS",     # pop up help boxes
              "ggplot2",     # nice graphics
              "dplyr",       # data handling
+             "reshape2",    # data handling
              "tidyr",       # data handling
              "Hmisc")       # error bar plotting
 

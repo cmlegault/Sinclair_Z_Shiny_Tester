@@ -279,21 +279,11 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                             "Width of moving window used in Sinclair Z estimation. Default value used in publication is 4",
                             "right"),
                   
-                  actionButton("firstfit",
-                               label = "Display First Fit"),
+                  uiOutput("fitslider"),
                   
-                  bsTooltip("firstfit",
-                            "These buttons cycle through the plots in the Fit tab",
+                  bsTooltip("fitslider",
+                            "Determines which regression is shown in the Fits tab. Can use the play button to loop through all the fits. Can also select specific fit by moving slider as ususal.",
                             "right"),
-                  
-                  actionButton("previousfit",
-                               label = "Display Previous Fit"),
-                  
-                  actionButton("nextfit",
-                               label = "Display Next Fit"),
-                  
-                  actionButton("lastfit",
-                               label = "Display Last Fit"),
                   
                   br(),
                   br(),
@@ -548,36 +538,28 @@ server <- function(input, output) {
     }
   })
   
-  nfits <- reactive({
-    length(res()$plot.year)
+  output$fitslider <- renderUI({
+    sliderInput("whichfit",
+                label = "Which fit to view",
+                min = 1,
+                max = length(res()$plot.year),
+                step = 1,
+                value = 1,
+                animate = TRUE)
   })
-
-  icount <- reactiveValues(fit = 1)
-  observeEvent(input$firstfit, {icount$fit <- 1})
-  observeEvent(input$previousfit, {
-    icount$fit <- icount$fit - 1
-    icount$fit <- max(icount$fit, 1)
-    icount$fit <- min(icount$fit, nfits())
-  })
-  observeEvent(input$nextfit, {
-    icount$fit <- icount$fit + 1
-    icount$fit <- max(icount$fit, 1)
-    icount$fit <- min(icount$fit, nfits())
-  })
-  observeEvent(input$lastfit, {icount$fit <- nfits()})
   
   output$fitsPlot <- renderPlot({
     ny <- length(res()$plot.year)
     my.col <- 1:100
     my.col[7] <- "blue"
-    data <- res()[[icount$fit]]
+    data <- res()[[input$whichfit]]
     n.coh <- length(unique(data$cohort))
     i.coh <- (data$cohort-min(data$cohort, na.rm=T)+1)
     plot(data$Age,data$lnVal,pch=i.coh,col=my.col[i.coh],xlab="Age",ylab="ln Val")
     title(main=paste0("Years ",min(data$Year)," to ",max(data$Year),
-                      "\nZ = ",round(res()$est.Sinclair.Z[icount$fit,1],3), 
-                      "  (",round(res()$est.Sinclair.Z[icount$fit,2],3),", ",
-                      round(res()$est.Sinclair.Z[icount$fit,3],3),")"), outer=F)
+                      "\nZ = ",round(res()$est.Sinclair.Z[input$whichfit,1],3), 
+                      "  (",round(res()$est.Sinclair.Z[input$whichfit,2],3),", ",
+                      round(res()$est.Sinclair.Z[input$whichfit,3],3),")"), outer=F)
     for (j in 1:n.coh){
       subcoh <- data[i.coh == j,]
       if (length(subcoh$lnVal) >= 2){

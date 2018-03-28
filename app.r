@@ -237,6 +237,22 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                           
                           bsTooltip("phiF",
                                     "Corellation in random deviates for F from one year to the next",
+                                    "right"),
+                          
+                          actionButton("saveInputs",
+                                       "Save Inputs",
+                                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                          
+                          bsTooltip("saveInputs",
+                                    "Be sure the directory and filename are specified in the text box below before clicking this button! Exisiting file will be overwritten without warning",
+                                    "right"),
+                          
+                          textInput("inputsfilename",
+                                    "dir and filename",
+                                    value = "C:/Users/chris.legault/Desktop/user_inputs.csv"),
+                          
+                          bsTooltip("inputsfilename",
+                                    "Be sure to use / or \\\\\\\\ for directories and that extension is .csv. Alternatively, set working directory for the session and supply only the filename",
                                     "right")
                           )
                    )
@@ -566,6 +582,35 @@ server <- function(input, output) {
         lines(subcoh$Age,subcoh$pred,col=my.col[j],lty=j) 
       }
     }
+  })
+  
+  observeEvent(input$saveInputs,{
+    input_names <- c("rngSeed",
+                     "FisheryFullSelectivityLow",
+                     "FisheryFullSelectivityHigh",
+                     "FisherySelectivityWidth",
+                     "StartingF",
+                     "EndingF",
+                     "changeF",
+                     "surveyESS",
+                     "SurveyFullSelectivityLow",
+                     "SurveyFullSelectivityHigh",
+                     "SurveySelectivityWidth",
+                     "sigmaF",
+                     "phiF")
+    input_values <- c(input$rngSeed,
+                      input$FisheryFullSelectivity,
+                      input$FisherySelectivityWidth,
+                      input$StartingF,
+                      input$EndingF,
+                      input$changeF,
+                      input$surveyESS,
+                      input$SurveyFullSelectivity,
+                      input$SurveySelectivityWidth,
+                      input$sigmaF,
+                      input$phiF)
+    input_data_frame <- data.frame(inputID = input_names, value = input_values)
+    write.csv(input_data_frame, input$inputsfilename, row.names=FALSE)
   })
   
 }

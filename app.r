@@ -460,6 +460,15 @@ server <- function(input, output) {
            AGE %in% seq(input$ageInput[1], input$ageInput[2])) 
   })
   
+  res <- reactive({
+    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
+      spread(key=AGE, value=NO_AT_AGE, fill=0)
+    years <- mat$YEAR
+    mat <- select(mat, -c(YEAR))
+    rownames(mat) <- years
+    calc_Sinclair_Z(mat, input$nwSelection) 
+  })
+  
   output$ZvaluesPlot <- renderPlot({
     ZAA_use <- ZAA()
     ZAAdf <- data.frame(YEAR = integer(),
@@ -506,16 +515,10 @@ server <- function(input, output) {
     Ztruedf <- data.frame(Year = 1:nyears,
                           Z = Ztrue)
     # end add Ztrue section
-    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
-      spread(key=AGE, value=NO_AT_AGE, fill=0)
-    years <- mat$YEAR
-    mat <- select(mat, -c(YEAR))
-    rownames(mat) <- years
-    res <- calc_Sinclair_Z(mat, input$nwSelection) 
-    est.Z <- data.frame(Year = res$plot.year,
-                        Z = res$est.Sinclair.Z[,1],
-                        low = res$est.Sinclair.Z[,2],
-                        high = res$est.Sinclair.Z[,3])
+    est.Z <- data.frame(Year = res()$plot.year,
+                        Z = res()$est.Sinclair.Z[,1],
+                        low = res()$est.Sinclair.Z[,2],
+                        high = res()$est.Sinclair.Z[,3])
     ggplot(est.Z, aes(x=Year, y=Z)) +
       geom_errorbar(aes(ymin=low, ymax=high), na.rm = TRUE) +
       geom_point(na.rm = TRUE) +
@@ -525,19 +528,13 @@ server <- function(input, output) {
   })
   
   output$diagnosticPlot <- renderPlot({
-    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
-      spread(key=AGE, value=NO_AT_AGE, fill=0)
-    years <- mat$YEAR
-    mat <- select(mat, -c(YEAR))
-    rownames(mat) <- years
-    res <- calc_Sinclair_Z(mat, input$nwSelection)
-    ny <- length(res$plot.year)
-    if (!all(is.na(res$est.Sinclair.Z))){
+    ny <- length(res()$plot.year)
+    if (!all(is.na(res()$est.Sinclair.Z))){
       resids <- data.frame(Age = numeric(),
                            Resid = numeric())
       for (i in 1:ny){
-        if (!is.na(res$est.Sinclair.Z[i,1])){
-          data <- res[[i]]
+        if (!is.na(res()$est.Sinclair.Z[i,1])){
+          data <- res()[[i]]
           resids <- rbind(resids,data.frame(Age = data$Age,
                                             Resid = data$resid))
         }  
@@ -552,13 +549,7 @@ server <- function(input, output) {
   })
   
   nfits <- reactive({
-    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
-      spread(key=AGE, value=NO_AT_AGE, fill=0)
-    years <- mat$YEAR
-    mat <- select(mat, -c(YEAR))
-    rownames(mat) <- years
-    res <- calc_Sinclair_Z(mat, input$nwSelection)
-    length(res$plot.year)
+    length(res()$plot.year)
   })
 
   icount <- reactiveValues(fit = 1)
@@ -576,23 +567,17 @@ server <- function(input, output) {
   observeEvent(input$lastfit, {icount$fit <- nfits()})
   
   output$fitsPlot <- renderPlot({
-    mat <- select(dat(), c("YEAR", "AGE", "NO_AT_AGE")) %>%
-      spread(key=AGE, value=NO_AT_AGE, fill=0)
-    years <- mat$YEAR
-    mat <- select(mat, -c(YEAR))
-    rownames(mat) <- years
-    res <- calc_Sinclair_Z(mat, input$nwSelection)
-    ny <- length(res$plot.year)
+    ny <- length(res()$plot.year)
     my.col <- 1:100
     my.col[7] <- "blue"
-    data <- res[[icount$fit]]
+    data <- res()[[icount$fit]]
     n.coh <- length(unique(data$cohort))
     i.coh <- (data$cohort-min(data$cohort, na.rm=T)+1)
     plot(data$Age,data$lnVal,pch=i.coh,col=my.col[i.coh],xlab="Age",ylab="ln Val")
     title(main=paste0("Years ",min(data$Year)," to ",max(data$Year),
-                      "\nZ = ",round(res$est.Sinclair.Z[icount$fit,1],3), 
-                      "  (",round(res$est.Sinclair.Z[icount$fit,2],3),", ",
-                      round(res$est.Sinclair.Z[icount$fit,3],3),")"), outer=F)
+                      "\nZ = ",round(res()$est.Sinclair.Z[icount$fit,1],3), 
+                      "  (",round(res()$est.Sinclair.Z[icount$fit,2],3),", ",
+                      round(res()$est.Sinclair.Z[icount$fit,3],3),")"), outer=F)
     for (j in 1:n.coh){
       subcoh <- data[i.coh == j,]
       if (length(subcoh$lnVal) >= 2){

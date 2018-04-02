@@ -108,7 +108,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                 p("This is where you create the data by moving sliders and selecting options that define the population, fishery, and survey characteristics. You have the ability to make the fishery and survey selectivities logistic, domed, or full at all ages. You also determine how the fishing mortality changes over time (M is assumed equal to 0.2 for all years and ages, of course). You can add noise about the trend in F over time, including autocorrelation in the noise if you wish. The randomg number generator (RNG) seed value choice allows you to return to a single setting or explore different age ranges for estimating Z on a fixed data set."),
                 br(),
                 h3("Estimate Z"),
-                p("This is where you make the choice of which ages to use in the estimation of Z. Use the Diagnostic tab to see if the residuals are centered on zero. A partially selected age can produce a distribution of residuals that does not overlap the zero line. The number of years in the moving windows can be changed from the default value of 4 to examine the impact on estimates and diagnostics. Unlike the real world, the Z estimate plot shows the actual Z trend in red, so you can see how well the estimator performed. This should help you understand how much to pay attention to individual years using the Sinclair Z estimator. The individual fits can be paged through using the four buttons (display first, next, previous, and last fit), so that you can look at unusual or typical year windows in the time series of Z estimates.")
+                p("This is where you make the choice of which ages to use in the estimation of Z. Use the Diagnostic tab to see if the residuals are centered on zero. A partially selected age can produce a distribution of residuals that does not overlap the zero line. The number of years in the moving windows can be changed from the default value of 4 to examine the impact on estimates and diagnostics. Unlike the real world, the Z estimate plot shows the actual Z trend in red, so you can see how well the estimator performed. This should help you understand how much to pay attention to individual years using the Sinclair Z estimator. The individual fits can be seen one after another using the play button (triangle below the slider).")
               )
             )
    ),
@@ -126,7 +126,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                                       value = 100),
                           
                           bsTooltip("rngSeed",
-                                    "Changes recruitment and survey observations (multinomial)",
+                                    "Changes recruitment and fishing mortality annual values as well as survey observations (multinomial)",
                                     "right"),
                           
                           sliderInput("FisheryFullSelectivity",
@@ -137,7 +137,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                                       value = c(9, 25)),
                           
                           bsTooltip("FisheryFullSelectivity",
-                                    "Use sliders to determine ages that are and are not fully selected",
+                                    "Use sliders to determine ages that are fully selected",
                                     "right"),
                           
                           sliderInput("FisherySelectivityWidth",
@@ -203,7 +203,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                                       value = c(1, 15)),
                           
                           bsTooltip("SurveyFullSelectivity",
-                                    "Use sliders to determine ages that are and are not fully selected",
+                                    "Use sliders to determine ages that are fully selected",
                                     "right"),
                           
                           sliderInput("SurveySelectivityWidth",
@@ -325,7 +325,7 @@ ui <- navbarPage("Sinclair Z Shiny Tester",
                                "Box and whisker plot of residuals from all regressions (shown in Fits plots) for each age. Numbers denote the number of residuals at age (can differ due to zero catch at age for some cohorts)",
                                "left"),
                      bsTooltip("fitsPlot",
-                               "One moving window regression with common total mortality estimate (negative of the slope) and different intercepts for each cohort. Colors and symbols denote different cohorts). The y-axis for these plots is the natural logarithm of the survey catch at age for a year in the moving window. Use the buttons to cycle through different year windows",
+                               "One moving window regression with common total mortality estimate (negative of the slope) and different intercepts for each cohort. Colors and symbols denote different cohorts. The y-axis for these plots is the natural logarithm of the survey catch at age for a year in the moving window. Use the slider play button to cycle through all the moving windows",
                                "left")
                      
                      

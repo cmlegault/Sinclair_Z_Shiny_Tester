@@ -88,7 +88,9 @@ give.n <- function(x){
 
 #-------------------------------------------------------------------------------------
 # Define UI for application that draws a histogram
-ui <- navbarPage("Sinclair Z Shiny Tester",  
+ui <- navbarPage(strong("Sinclair Z Shiny Tester"),
+                 header = img(src="noaanefsclogo.PNG"),
+                 windowTitle = "Sinclair Z Shiny Tester",  
                  
    tabPanel("Introduction",
             sidebarLayout(
